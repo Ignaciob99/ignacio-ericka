@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <py-env>
+        -numpy
+    </py-env>
+    <script src='https://cdn.plot.ly/plotly-2.14.0.min.js'></script>
+</head>
+<body>
+    <py-script>
+import math
+def comparar(x,xk,eps):
+  soma = 0
+  zip_object = zip(x, xk)
+  for list1_i, list2_i in zip_object:
+    soma = soma + math.fabs(list1_i-list2_i)
+  if (soma < eps):
+    return True
+  else:
+    return False   
+
+def gaussSeidel(A,b,maxiter,eps):
+  n = len(b)
+  sol = True
+  x = b.copy()
+  for i in list(range(1,n+1,1)):
+    if (math.fabs(A[i-1][i-1]) > 0.0):
+      x[i-1] = b[i-1]/A[i-1][i-1]
+    else:
+      sol = False
+      break
+  if (sol):
+    print("Iteracion 0")
+    print("x = ",x)
+    xk = x.copy()
+    iter    = 0
+    while (iter < maxiter):
+      iter = iter + 1
+      for i in list(range(1,n+1,1)):
+        s = 0
+        for j in list(range(1,n+1,1)):
+          if ((i-1) > (j-1)):
+            s = s + A[i-1][j-1]*xk[j-1]
+          elif ((i-1) < (j-1)):
+            s = s + A[i-1][j-1]*x[j-1]
+        xk[i-1] = (1/A[i-1][i-1])*(b[i-1]-s)
+      print("Iteracion: ",iter)
+      print("xk = ",xk)
+      if comparar(x,xk,eps):
+        x = xk.copy()
+        break    
+      x = xk.copy()
+  return x
+
+def jacobi(mx,mr,n,c):
+    if len (mx) == len (mr): 
+        x = [] 
+        for i in range(len(mr)):
+            x.append([0])
+            count = 0
+        while count < n:
+            nx = []
+            for i in range(len(x)):
+                nxi = mr[i][0]
+                for j in range(len(mx[i])):
+                    if j!=i:
+                        nxi = nxi+(-mx[i][j])*x[j][0]
+                nxi = nxi/mx[i][i]
+                print(nxi,end="     ")
+                nx.append ([nxi])
+                if (i+1)%3==0:
+                    print()
+            lc = []
+            for i in range(len(x)):
+                lc.append(abs(x[i][0]-nx[i][0]))
+            if max(lc) < c:
+                return nx
+            x = nx
+            count = count + 1
+        return False
+    else:
+        return False
+def crear(n,m):
+    matriz=[]
+    for i in range(n):
+        a=[0]*m
+        matriz.append(a)
+    return matriz
+def inversa(A):
+    m=[]
+    for elem in A: m.append(elem.copy())
+    for fila in range(len(m)):
+        for col in range(len(m)):
+            m[fila].append(1 if fila==col else 0)
+    for pivote in range(len(m)-1):
+        if m[pivote][pivote]==0:
+            for fila in range(pivote+1,len(m)):
+                if m[fila][pivote]!=0:
+                    for columna in range(pivote,len(m[fila])):
+                        m[pivote][columna]+=m[fila][columna]
+                        break
+            if m[pivote][pivote]==0: return None
+        for fila in range(pivote+1,len(m)):
+            factor=m[fila][pivote]/m[pivote][pivote]
+            if factor!=0:
+                for columna in range(pivote,len(m[fila])):
+                    m[fila][columna]-=m[pivote][columna]*factor
+    for fila in range(len(m)):
+        for columna in range(fila+1,len(m)):
+            if m[columna][columna]!=0:
+                factor=m[fila][columna]/m[columna][columna]
+                for colAux in range(columna,len(m)+2):
+                    m[fila][colAux]-=m[columna][colAux]*factor
+    for fila in range(len(m)):
+        factor=m[fila][fila]
+        for columna in range(len(m[fila])):
+            m[fila][columna]/=factor
+    for fila in range(len(m)):
+        m[fila]=m[fila][len(m):]
+    return m
+def multi(m1,m2):
+    if len(m1[0])==len(m2):
+        m3=[]
+        for i in range(len(m1)):
+            m3.append([])
+            for j in range(len(m2[0])):
+                m3[i].append(0)
+        for i in range(len(m1)):
+            for j in range(len(m2[0])):
+                for k in range(len(m1[0])):
+                    m3[i][j]+=m1[i][k]*m2[k][j]
+        return m3
+    else:
+        return None
+def lu(n,A,b):
+  l=crear(n,n)
+  u=A
+  for i in range(0,n):
+      for j in range(0,n):
+          if i==j:
+              l[i][j]=1
+          if i < j:
+              factor=(A[j][i]/A[i][i])
+              l[j][i]=factor
+              for k in range(0,n):
+                  A[j][k]=A[j][k]-(factor*A[i][k])
+                  u[j][k]=A[j][k]
+  #imprimir resultados
+  print("MATRIZ L")
+  print(l)
+  print("MATRIZ U")
+  print(u)
+  invL=inversa(l)
+  invU=inversa(u)
+  d=multi(invL,b)
+  x=multi(invU,d)
+  return x
+
+cant=int(input("TAMAÑO DE MATRIZ: "))
+A=[]
+b=[]
+print("ESCRIBE POR FILA LA MATRIZ A")
+for i in range(0,cant):
+  a1=list(map(float,input().split()))
+  A.append(a1)
+print("ESCRIBE UNO POR UNO LA MATRIZ B")
+for i in range(0,cant):
+  b1=list(map(float,input().split()))
+  b.append(b1)
+tol=float(input("TOLERANCIA: "))
+print("RESOLVER POR: ")
+print("JACOBI (1) - SEIDEL (2) - LU (3)")
+sol=int(input())
+if sol==1:
+  x=jacobi(A,b,100,tol)
+elif sol==2:
+  x=gaussSeidel(A,b,100,tol)
+elif sol==3:
+  x=lu(cant,A,b)
+else:
+  x="Elige solo 1, 2 o 3"
+print("RESPUESTA")
+print("x = ",x)
+    </py-script>
+</body>
+</html>
