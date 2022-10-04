@@ -31,7 +31,7 @@ def gaussSeidel(A,b,maxiter,eps):
   x = b.copy()
   for i in list(range(1,n+1,1)):
     if (math.fabs(A[i-1][i-1]) > 0.0):
-      x[i-1] = b[i-1]/A[i-1][i-1]
+      x[i-1] = b[i-1][0]/A[i-1][i-1]
     else:
       sol = False
       break
@@ -49,7 +49,7 @@ def gaussSeidel(A,b,maxiter,eps):
             s = s + A[i-1][j-1]*xk[j-1]
           elif ((i-1) < (j-1)):
             s = s + A[i-1][j-1]*x[j-1]
-        xk[i-1] = (1/A[i-1][i-1])*(b[i-1]-s)
+        xk[i-1] = (1/A[i-1][i-1])*(b[i-1][0]-s)
       print("Iteracion: ",iter)
       print("xk = ",xk)
       if comparar(x,xk,eps):
@@ -57,7 +57,7 @@ def gaussSeidel(A,b,maxiter,eps):
         break    
       x = xk.copy()
   return x
-
+                               
 def jacobi(mx,mr,n,c):
     if len (mx) == len (mr): 
         x = [] 
